@@ -68,3 +68,18 @@ class GerenciadorTarefas:
 
     def listar_concluidas(self):
         return [t for t in self.tarefas.values() if t.concluida]
+
+    def buscar_por_titulo(self, termo):
+        termo = termo.lower()
+        return [
+            t for t in self.tarefas.values()
+            if termo in t.titulo.lower()
+        ]
+    def listar_atrasadas(self):
+        hoje = date.today()
+        return [
+            t for t in self.tarefas.values()
+            if t.data_vencimento is not None
+            and t.data_vencimento < hoje
+            and not t.concluida
+        ]
