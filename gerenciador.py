@@ -36,12 +36,12 @@ class GerenciadorTarefas:
 
     def obter(self, id):
         if id not in self.tarefas:
-            raise TarefaNaoEncontradaErro("Tarefa não encontrada.")
+            raise TarefaNaoEncontradaErro("Tarefa não localizada.")
         return self.tarefas[id]
 
     def remover(self, id):
         if id not in self.tarefas:
-            raise TarefaNaoEncontradaErro("Tarefa não encontrada.")
+            raise TarefaNaoEncontradaErro("Tarefa não localizada.")
         del self.tarefas[id]
 
     def concluir(self, id):
