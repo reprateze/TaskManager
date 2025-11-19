@@ -63,3 +63,24 @@ def test_editar_data_vencimento_invalida(gerente):
     with pytest.raises(TarefaInvalidaErro):
         gerente.editar("d1", data_vencimento="2025-01-01")
 
+def test_buscar_por_titulo(gerente):
+    gerente.adicionar(Tarefa(id="1", titulo="Comprar pão"))
+    gerente.adicionar(Tarefa(id="2", titulo="Comprar leite"))
+    gerente.adicionar(Tarefa(id="3", titulo="Estudar Python"))
+
+    resultados = gerente.buscar_por_titulo("comprar")
+
+    assert len(resultados) == 2
+    assert resultados[0].id == "1"
+    assert resultados[1].id == "2"
+def test_listar_atrasadas(gerente):
+    hoje = date.today()
+
+    gerente.adicionar(Tarefa(id="1", titulo="T1", data_vencimento=hoje.replace(day=hoje.day - 2)))
+    gerente.adicionar(Tarefa(id="2", titulo="T2", data_vencimento=hoje.replace(day=hoje.day + 3)))
+    gerente.adicionar(Tarefa(id="3", titulo="T3", data_vencimento=hoje.replace(day=hoje.day - 1), concluida=True))
+
+    atrasadas = gerente.listar_atrasadas()
+
+    assert len(atrasadas) == 1
+    assert atrasadas[0].id == "1"
