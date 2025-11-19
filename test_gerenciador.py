@@ -1,3 +1,4 @@
+import os
 import pytest
 from datetime import date
 from gerenciador import (
@@ -12,7 +13,14 @@ from gerenciador import (
 def gerente():
     return GerenciadorTarefas()
 
-# ===== TESTES =====
+def eh_primo(n: int) -> bool:
+    if n < 2:
+        return False
+    for i in range(2, int(n ** 0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
 def test_adicionar_tarefa(gerente):
     t = Tarefa(id="1", titulo="Comprar leite")
     gerente.adicionar(t)
@@ -84,3 +92,20 @@ def test_listar_atrasadas(gerente):
 
     assert len(atrasadas) == 1
     assert atrasadas[0].id == "1"
+def test_adicionar_tarefa_com_id_primo(gerente):
+    valor_str = os.getenv("ID_TAREFA_PRIMO")
+    assert valor_str is not None, (
+        "Defina a variável de ambiente ID_TAREFA_PRIMO com um número primo "
+        "antes de rodar esse teste."
+    )
+
+    valor = int(valor_str)
+
+    assert eh_primo(valor), f"O valor informado ({valor}) não é primo!"
+
+    t = Tarefa(id=str(valor), titulo="Tarefa com ID primo")
+    gerente.adicionar(t)
+
+    tarefa = gerente.obter(str(valor))
+    assert tarefa.id == str(valor)
+    assert tarefa.titulo == "Tarefa com ID primo"
