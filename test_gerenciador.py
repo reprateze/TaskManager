@@ -36,3 +36,30 @@ def test_remover_tarefa(gerente):
 def test_remover_inexistente(gerente):
     with pytest.raises(TarefaNaoEncontradaErro):
         gerente.remover("999")
+
+def test_concluir_tarefa(gerente):
+    gerente.adicionar(Tarefa(id="2", titulo="Pagar conta"))
+    gerente.concluir("2")
+    assert gerente.obter("2").concluida
+
+def test_listar_pendentes_concluidas(gerente):
+    gerente.adicionar(Tarefa(id="a", titulo="A"))
+    gerente.adicionar(Tarefa(id="b", titulo="B"))
+    gerente.concluir("b")
+    pendentes = gerente.listar_pendentes()
+    concluidas = gerente.listar_concluidas()
+    assert len(pendentes) == 1 and pendentes[0].id == "a"
+    assert len(concluidas) == 1 and concluidas[0].id == "b"
+
+def test_editar_tarefa(gerente):
+    gerente.adicionar(Tarefa(id="x", titulo="Old"))
+    gerente.editar("x", titulo="Novo", descricao="desc")
+    assert gerente.obter("x").titulo == "Novo"
+    with pytest.raises(TarefaInvalidaErro):
+        gerente.editar("x", titulo="")
+
+def test_editar_data_vencimento_invalida(gerente):
+    gerente.adicionar(Tarefa(id="d1", titulo="Vencimento"))
+    with pytest.raises(TarefaInvalidaErro):
+        gerente.editar("d1", data_vencimento="2025-01-01")
+
