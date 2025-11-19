@@ -27,3 +27,12 @@ def test_adicionar_duplicada(gerente):
     with pytest.raises(TarefaExisteErro):
         gerente.adicionar(Tarefa(id="1", titulo="B"))
 
+def test_remover_tarefa(gerente):
+    gerente.adicionar(Tarefa(id="1", titulo="Tarefa"))
+    gerente.remover("1")
+    with pytest.raises(TarefaNaoEncontradaErro):
+        gerente.obter("1")
+
+def test_remover_inexistente(gerente):
+    with pytest.raises(TarefaNaoEncontradaErro):
+        gerente.remover("999")
