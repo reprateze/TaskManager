@@ -1,92 +1,92 @@
+from dataclasses import dataclass
 from datetime import date
+from typing import Optional, Dict, List
 
-class ErroTarefa(Exception):
+class TarefaExisteErro(Exception):
     pass
 
-class TarefaExisteErro(ErroTarefa):
+class TarefaNaoEncontradaErro(Exception):
     pass
 
-class TarefaNaoEncontradaErro(ErroTarefa):
+class TarefaInvalidaErro(Exception):
     pass
 
-class TarefaInvalidaErro(ErroTarefa):
-    pass
 
-def eh_primo(n: int) -> bool:
-    if n < 2:
-        return False
-    for i in range(2, int(n ** 0.5) + 1):
-        if n % i == 0:
-            return False
-    return True
+@dataclass
 class Tarefa:
-    def __init__(self, id, titulo, descricao="", concluida=False, data_vencimento=None):
-        self.id = id
-        self.titulo = titulo
-        self.descricao = descricao
-        self.concluida = concluida
-        self.data_vencimento = data_vencimento
-class GerenciadorTarefas:
-    def __init__(self):
-        self.tarefas = {}
+    id: str
+    titulo: str
+    descricao: str = ""
+    data_vencimento: Optional[date] = None
+    concluida: bool = False
 
-    def adicionar(self, tarefa: Tarefa):
+
+class GerenciadorTarefas:
+    def __init__(self) -> None:
+        self._tarefas: Dict[str, Tarefa] = {}
+
+    def adicionar(self, tarefa: Tarefa) -> None:
+        # validação básica
         if not tarefa.id or not tarefa.titulo:
             raise TarefaInvalidaErro("ID e título são obrigatórios.")
-        if isinstance(tarefa.id, int) or (isinstance(tarefa.id, str) and tarefa.id.isdigit()):
-            valor = int(tarefa.id)
-            if not eh_primo(valor):
-                raise TarefaInvalidaErro("ID numérico deve ser um número primo.")
 
-        if tarefa.id in self.tarefas:
-            raise TarefaExisteErro("Tarefa já existe.")
-        self.tarefas[tarefa.id] = tarefa
+        # não permitir duplicadas
+        if tarefa.id in self._tarefas:
+            raise TarefaExisteErro(f"Tarefa com ID {tarefa.id} já existe.")
 
-    def obter(self, id):
-        if id not in self.tarefas:
-            raise TarefaNaoEncontradaErro("Tarefa não localizada.")
-        return self.tarefas[id]
+        # ❌ NÃO verificar se o ID é primo aqui
+        self._tarefas[tarefa.id] = tarefa
 
-    def remover(self, id):
-        if id not in self.tarefas:
-            raise TarefaNaoEncontradaErro("Tarefa não localizada.")
-        del self.tarefas[id]
+    def obter(self, id: str) -> Tarefa:
+        try:
+            return self._tarefas[id]
+        except KeyError:
+            raise TarefaNaoEncontradaErro("Tarefa não encontrada.")
 
-    def concluir(self, id):
-        self.obter(id).concluida = True
+    def remover(self, id: str) -> None:
+        if id not in self._tarefas:
+            raise TarefaNaoEncontradaErro("Tarefa não encontrada.")
+        del self._tarefas[id]
 
-    def editar(self, id, titulo=None, descricao=None, data_vencimento=None):
+    def concluir(self, id: str) -> None:
         tarefa = self.obter(id)
-        if titulo is not None:
-            if not isinstance(titulo, str) or not titulo.strip():
-                raise TarefaInvalidaErro("Título inválido.")
-            tarefa.titulo = titulo
-        if descricao is not None:
-            tarefa.descricao = descricao
-        if data_vencimento is not None:
-            if not isinstance(data_vencimento, date):
-                raise TarefaInvalidaErro("data_vencimento deve ser datetime.date")
-            tarefa.data_vencimento = data_vencimento
+        tarefa.concluida = True
 
-    def listar_todas(self):
-        return list(self.tarefas.values())
+    def listar_pendentes(self) -> List[Tarefa]:
+        return [t for t in self._tarefas.values() if not t.concluida]
 
-    def listar_pendentes(self):
-        return [t for t in self.tarefas.values() if not t.concluida]
+    def listar_concluidas(self) -> List[Tarefa]:
+        return [t for t in self._tarefas.values() if t.concluida]
 
-    def listar_concluidas(self):
-        return [t for t in self.tarefas.values() if t.concluida]
+    def editar(self, id: str, **campos) -> None:
+        tarefa = self.obter(id)
 
-    def buscar_por_titulo(self, termo):
+        if "titulo" in campos:
+            novo_titulo = campos["titulo"]
+            if not novo_titulo:
+                raise TarefaInvalidaErro("Título não pode ser vazio.")
+            tarefa.titulo = novo_titulo
+
+        if "descricao" in campos:
+            tarefa.descricao = campos["descricao"]
+
+        if "data_vencimento" in campos:
+            nova_data = campos["data_vencimento"]
+            if nova_data is not None and not isinstance(nova_data, date):
+                raise TarefaInvalidaErro("data_vencimento deve ser um objeto date.")
+            tarefa.data_vencimento = nova_data
+
+    def buscar_por_titulo(self, termo: str) -> List[Tarefa]:
         termo = termo.lower()
         return [
-            t for t in self.tarefas.values()
+            t for t in self._tarefas.values()
             if termo in t.titulo.lower()
         ]
-    def listar_atrasadas(self):
+
+    def listar_atrasadas(self) -> List[Tarefa]:
         hoje = date.today()
         return [
-            t for t in self.tarefas.values()
+            t for t in self._tarefas.values()
             if t.data_vencimento is not None
             and t.data_vencimento < hoje
             and not t.concluida
