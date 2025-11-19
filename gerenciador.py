@@ -1,6 +1,5 @@
 from datetime import date
 
-# ===== EXCEÇÕES =====
 class ErroTarefa(Exception):
     pass
 
@@ -13,7 +12,13 @@ class TarefaNaoEncontradaErro(ErroTarefa):
 class TarefaInvalidaErro(ErroTarefa):
     pass
 
-# ===== MODELO DE TAREFA =====
+def eh_primo(n: int) -> bool:
+    if n < 2:
+        return False
+    for i in range(2, int(n ** 0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
 class Tarefa:
     def __init__(self, id, titulo, descricao="", concluida=False, data_vencimento=None):
         self.id = id
@@ -21,8 +26,6 @@ class Tarefa:
         self.descricao = descricao
         self.concluida = concluida
         self.data_vencimento = data_vencimento
-
-# ===== GERENCIADOR DE TAREFAS =====
 class GerenciadorTarefas:
     def __init__(self):
         self.tarefas = {}
@@ -30,6 +33,11 @@ class GerenciadorTarefas:
     def adicionar(self, tarefa: Tarefa):
         if not tarefa.id or not tarefa.titulo:
             raise TarefaInvalidaErro("ID e título são obrigatórios.")
+        if isinstance(tarefa.id, int) or (isinstance(tarefa.id, str) and tarefa.id.isdigit()):
+            valor = int(tarefa.id)
+            if not eh_primo(valor):
+                raise TarefaInvalidaErro("ID numérico deve ser um número primo.")
+
         if tarefa.id in self.tarefas:
             raise TarefaExisteErro("Tarefa já existe.")
         self.tarefas[tarefa.id] = tarefa
