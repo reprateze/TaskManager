@@ -82,6 +82,8 @@ pip install pytest
 
 **Executar os testes**
 pytest -v
+set ID_TAREFA_PRIMO=13
+pytest -k "test" -v
 
 **Estrutura Recomendada do Projeto**
 /TaskManager
